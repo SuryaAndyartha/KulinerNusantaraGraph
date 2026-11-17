@@ -113,7 +113,7 @@ UNWIND [
   {wilayah: "Wilayah Maluku", provinsi: ["Maluku", "Maluku Utara"]},
   {wilayah: "Wilayah Papua", provinsi: ["Papua", "Papua Barat", "Papua Barat Daya", "Papua Tengah", "Papua Pegunungan", "Papua Selatan"]}
 ] AS baris
-MATCH (negara:Negara {nama: 'Indonesia'})
+MATCH (negara:Daerah:Negara {nama: 'Indonesia'})
 MERGE (wil:Daerah:Wilayah {nama: baris.wilayah})
 MERGE (wil)-[:PART_OF]->(negara)
 WITH wil, baris
