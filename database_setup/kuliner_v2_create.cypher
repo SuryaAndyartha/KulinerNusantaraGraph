@@ -1,13 +1,12 @@
 // =====================================================================
-//  KNOWLEDGE GRAPH KULINER NUSANTARA - VERSI 2 (CREATE satu per satu)
-//  HANYA untuk database kosong dan dijalankan SEKALI.
-//  Dijalankan ulang tanpa langkah 0 -> error constraint (duplikat).
+//  KULINER NUSANTARA KNOWLEDGE GRAPH - VERSION 2 (CREATE ONE BY ONE)
+//  Only for an empty database and run ONCE (re-running without step 0 -> constraint error)
 // =====================================================================
 
-// ---------- 0. Kosongkan database ----------
+// ---------- 0. Empty database ---------- Or if possible, create a new database (not available in community version of Neo4j)
 MATCH (n) DETACH DELETE n;
 
-// ---------- 1. Constraint ----------
+// ---------- 1. Constraint: Assign unique constraint for each component's name ----------
 CREATE CONSTRAINT kelas_hidangan_nama IF NOT EXISTS FOR (n:KelasHidangan) REQUIRE n.nama IS UNIQUE;
 CREATE CONSTRAINT kelas_bahan_nama IF NOT EXISTS FOR (n:KelasBahan) REQUIRE n.nama IS UNIQUE;
 CREATE CONSTRAINT hidangan_nama IF NOT EXISTS FOR (n:Hidangan) REQUIRE n.nama IS UNIQUE;
@@ -15,7 +14,11 @@ CREATE CONSTRAINT bahan_nama IF NOT EXISTS FOR (n:Bahan) REQUIRE n.nama IS UNIQU
 CREATE CONSTRAINT alergen_nama IF NOT EXISTS FOR (n:Alergen) REQUIRE n.nama IS UNIQUE;
 CREATE CONSTRAINT daerah_nama IF NOT EXISTS FOR (n:Daerah) REQUIRE n.nama IS UNIQUE;
 
-// ---------- 2. Node class hidangan (beserta nilai default) ----------
+// =============
+// Node Creation
+// =============
+
+// ---------- 2. Class hidangan nodes ---------- Default value for several class (attribute, for exception purposes)
 CREATE (:KelasHidangan {nama: "Kuliner"});
 CREATE (:KelasHidangan {nama: "Makanan"});
 CREATE (:KelasHidangan {nama: "Minuman"});
@@ -44,35 +47,7 @@ CREATE (:KelasHidangan {nama: "Es Tradisional"});
 CREATE (:KelasHidangan {nama: "Wedang", suhu_sajian: "panas"});
 CREATE (:KelasHidangan {nama: "Kopi dan Teh Tradisional", suhu_sajian: "panas"});
 
-// ---------- 3. Relasi IS_A class hidangan ----------
-MATCH (a:KelasHidangan {nama: "Makanan"}), (b:KelasHidangan {nama: "Kuliner"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Minuman"}), (b:KelasHidangan {nama: "Kuliner"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Hidangan Utama"}), (b:KelasHidangan {nama: "Makanan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Jajanan"}), (b:KelasHidangan {nama: "Makanan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Pelengkap"}), (b:KelasHidangan {nama: "Makanan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Minuman Tradisional"}), (b:KelasHidangan {nama: "Minuman"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Hidangan Berkuah"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Hidangan Nasi"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Bubur"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Olahan Daging"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Olahan Ikan"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Olahan Sagu"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Olahan Umbi"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Hidangan Mi"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Hidangan Sayur"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Soto"}), (b:KelasHidangan {nama: "Hidangan Berkuah"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Gulai"}), (b:KelasHidangan {nama: "Hidangan Berkuah"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Sup"}), (b:KelasHidangan {nama: "Hidangan Berkuah"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Sate"}), (b:KelasHidangan {nama: "Olahan Daging"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Masakan Bumbu"}), (b:KelasHidangan {nama: "Olahan Daging"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Kue Tradisional"}), (b:KelasHidangan {nama: "Jajanan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Gorengan"}), (b:KelasHidangan {nama: "Jajanan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Sambal"}), (b:KelasHidangan {nama: "Pelengkap"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Es Tradisional"}), (b:KelasHidangan {nama: "Minuman Tradisional"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Wedang"}), (b:KelasHidangan {nama: "Minuman Tradisional"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasHidangan {nama: "Kopi dan Teh Tradisional"}), (b:KelasHidangan {nama: "Minuman Tradisional"}) CREATE (a)-[:IS_A]->(b);
-
-// ---------- 4. Node class bahan ----------
+// ---------- 3. Class bahan nodes ----------
 CREATE (:KelasBahan {nama: "Bahan"});
 CREATE (:KelasBahan {nama: "Bahan Hewani"});
 CREATE (:KelasBahan {nama: "Bahan Nabati"});
@@ -92,26 +67,7 @@ CREATE (:KelasBahan {nama: "Rempah"});
 CREATE (:KelasBahan {nama: "Bumbu Fermentasi"});
 CREATE (:KelasBahan {nama: "Pemanis"});
 
-// ---------- 5. Relasi IS_A class bahan ----------
-MATCH (a:KelasBahan {nama: "Bahan Hewani"}), (b:KelasBahan {nama: "Bahan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Bahan Nabati"}), (b:KelasBahan {nama: "Bahan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Bumbu"}), (b:KelasBahan {nama: "Bahan"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Daging"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Unggas"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Ikan"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Seafood"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Telur dan Susu"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Biji-bijian dan Umbi"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Kacang-kacangan"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Sayuran"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Kelapa dan Olahannya"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Buah"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Kopi dan Teh"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Rempah"}), (b:KelasBahan {nama: "Bumbu"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Bumbu Fermentasi"}), (b:KelasBahan {nama: "Bumbu"}) CREATE (a)-[:IS_A]->(b);
-MATCH (a:KelasBahan {nama: "Pemanis"}), (b:KelasBahan {nama: "Bumbu"}) CREATE (a)-[:IS_A]->(b);
-
-// ---------- 6. Node alergen ----------
+// ---------- 4. Alergen nodes ----------
 CREATE (:Alergen {nama: "Kacang Tanah", keterangan: "Kacang tanah dan olahannya"});
 CREATE (:Alergen {nama: "Kedelai", keterangan: "Kedelai dan olahannya (tempe, tahu)"});
 CREATE (:Alergen {nama: "Gluten", keterangan: "Gandum / tepung terigu"});
@@ -122,7 +78,7 @@ CREATE (:Alergen {nama: "Susu", keterangan: "Susu dan produk susu"});
 CREATE (:Alergen {nama: "Moluska", keterangan: "Siput, kerang, cumi"});
 CREATE (:Alergen {nama: "Kacang Pohon", keterangan: "Kenari, kacang mete, almon"});
 
-// ---------- 7. Node daerah ----------
+// ---------- 5. Daerah nodes: Negara, Wilayah, Provinsi ----------
 CREATE (:Daerah:Negara {nama: 'Indonesia'});
 CREATE (:Daerah:Wilayah {nama: "Wilayah Sumatera"});
 CREATE (:Daerah:Wilayah {nama: "Wilayah Jawa"});
@@ -170,54 +126,7 @@ CREATE (:Daerah:Provinsi {nama: "Papua Tengah"});
 CREATE (:Daerah:Provinsi {nama: "Papua Pegunungan"});
 CREATE (:Daerah:Provinsi {nama: "Papua Selatan"});
 
-// ---------- 8. Relasi PART_OF ----------
-MATCH (a:Wilayah {nama: "Wilayah Sumatera"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Wilayah {nama: "Wilayah Jawa"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Wilayah {nama: "Wilayah Kalimantan"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Wilayah {nama: "Wilayah Sulawesi"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Wilayah {nama: "Wilayah Maluku"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Wilayah {nama: "Wilayah Papua"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Aceh"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sumatera Utara"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sumatera Barat"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Riau"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Kepulauan Riau"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Jambi"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sumatera Selatan"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Bengkulu"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Lampung"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Kepulauan Bangka Belitung"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "DKI Jakarta"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Banten"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Jawa Barat"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Jawa Tengah"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "DI Yogyakarta"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Jawa Timur"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Bali"}), (b:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Nusa Tenggara Barat"}), (b:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Nusa Tenggara Timur"}), (b:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Kalimantan Barat"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Kalimantan Tengah"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Kalimantan Selatan"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Kalimantan Timur"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Kalimantan Utara"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sulawesi Utara"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Gorontalo"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sulawesi Tengah"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sulawesi Barat"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sulawesi Selatan"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Sulawesi Tenggara"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Maluku"}), (b:Wilayah {nama: "Wilayah Maluku"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Maluku Utara"}), (b:Wilayah {nama: "Wilayah Maluku"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Papua"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Papua Barat"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Papua Barat Daya"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Papua Tengah"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Papua Pegunungan"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
-MATCH (a:Provinsi {nama: "Papua Selatan"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
-
-// ---------- 9. Node bahan ----------
+// ---------- 6. Bahan nodes ----------
 CREATE (:Bahan {nama: "Daging Sapi"});
 CREATE (:Bahan {nama: "Daging Kambing"});
 CREATE (:Bahan {nama: "Daging Babi"});
@@ -303,7 +212,187 @@ CREATE (:Bahan {nama: "Gula Pasir"});
 CREATE (:Bahan {nama: "Kopi"});
 CREATE (:Bahan {nama: "Teh"});
 
-// ---------- 10. Relasi bahan INSTANCE_OF class bahan ----------
+// ---------- 7. Hidangan nodes ---------- Including derivated attributes, null attributes are not written (inherited from class default)
+CREATE (:Hidangan {nama: "Mie Aceh", catatan: "Varian seafood juga umum", tingkat_pedas: 3, rasa: "gurih", metode_masak: "rebus/tumis"});
+CREATE (:Hidangan {nama: "Arsik", catatan: "Masakan Batak", tingkat_pedas: 3, rasa: "gurih asam", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Mie Gomak", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Rendang", tingkat_pedas: 3, rasa: "gurih", metode_masak: "rebus lama"});
+CREATE (:Hidangan {nama: "Sate Padang", tingkat_pedas: 3, rasa: "gurih pedas", metode_masak: "bakar"});
+CREATE (:Hidangan {nama: "Teh Talua", catatan: "Kuning telur dikocok dengan teh panas", tingkat_pedas: 0, rasa: "manis", metode_masak: "seduh"});
+CREATE (:Hidangan {nama: "Gulai Ikan Patin", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Bolu Kemojo", tingkat_pedas: 0, metode_masak: "panggang"});
+CREATE (:Hidangan {nama: "Gonggong", catatan: "Siput laut (moluska)", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Otak-otak", catatan: "Juga dikenal di daerah lain, versi Kepri dicampur sambal", tingkat_pedas: 2, rasa: "gurih pedas", metode_masak: "bakar"});
+CREATE (:Hidangan {nama: "Lakse Kuah", catatan: "Menurut situs WBTB asalnya dari Pelalawan, Riau", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Tempoyak Ikan Patin", catatan: "Wikipedia menyebut Palembang, juga dikenal di Sumsel", tingkat_pedas: 3, rasa: "asam pedas", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Gulai Tepek Ikan", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Pempek", catatan: "Gula Merah untuk kuah cuko", tingkat_pedas: 2, rasa: "gurih asam", metode_masak: "rebus lalu goreng"});
+CREATE (:Hidangan {nama: "Kue Delapan Jam", catatan: "Disebut juga Bolu Lapan Jam", tingkat_pedas: 0, metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Pendap", tingkat_pedas: 3, rasa: "gurih pedas", metode_masak: "rebus lama"});
+CREATE (:Hidangan {nama: "Bagar Hiu", catatan: "Bumbu lengkap belum diverifikasi, kelas Gulai berdasarkan bentuk masakan berbumbu kari", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Seruit", catatan: "Ikan sungai: baung, belida, atau patin", tingkat_pedas: 4, rasa: "pedas", metode_masak: "bakar"});
+CREATE (:Hidangan {nama: "Gulai Taboh", catatan: "Isian beragam, bahan selain santan perlu dicek", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Lempah Kuning", tingkat_pedas: 2, rasa: "asam pedas", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Mie Koba", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Soto Betawi", catatan: "Kuah santan + susu", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Nasi Uduk", tingkat_pedas: 0, rasa: "gurih", metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Sate Bandeng", tingkat_pedas: 1, rasa: "manis gurih", metode_masak: "bakar"});
+CREATE (:Hidangan {nama: "Angeun Lada", catatan: "Berisi jeroan sapi", tingkat_pedas: 3, rasa: "pedas", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Karedok", catatan: "vegetarian mewarisi default Hidangan Sayur", tingkat_pedas: 2, rasa: "gurih", metode_masak: "mentah"});
+CREATE (:Hidangan {nama: "Empal Gentong", catatan: "Khas Cirebon, WBTB tingkat provinsi", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Bandrek", tingkat_pedas: 1, rasa: "manis hangat", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Es Doger", catatan: "Khas Bandung", tingkat_pedas: 0, rasa: "manis", metode_masak: "dingin"});
+CREATE (:Hidangan {nama: "Mendoan", catatan: "Khas Banyumas", tingkat_pedas: 0, rasa: "gurih", metode_masak: "goreng"});
+CREATE (:Hidangan {nama: "Nasi Liwet", catatan: "Khas Solo", tingkat_pedas: 0, rasa: "gurih", metode_masak: "liwet"});
+CREATE (:Hidangan {nama: "Getuk", tingkat_pedas: 0, rasa: "manis", metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Wedang Jahe", tingkat_pedas: 1, rasa: "manis hangat", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Gudeg", catatan: "vegetarian (ovo) mewarisi default Hidangan Sayur", tingkat_pedas: 0, rasa: "manis", metode_masak: "rebus lama"});
+CREATE (:Hidangan {nama: "Kopi Joss", catatan: "Disajikan dengan arang membara", tingkat_pedas: 0, rasa: "pahit manis", metode_masak: "seduh"});
+CREATE (:Hidangan {nama: "Rawon", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Tahu Campur", catatan: "Khas Lamongan", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Rujak Cingur", catatan: "EXCEPTION: vegetarian=false (cingur sapi)", tingkat_pedas: 2, rasa: "gurih manis", metode_masak: "mentah", vegetarian: false});
+CREATE (:Hidangan {nama: "Ayam Betutu", catatan: "Wikipedia: Bali dan NTB", tingkat_pedas: 4, rasa: "pedas", metode_masak: "kukus lalu panggang"});
+CREATE (:Hidangan {nama: "Sate Lilit", tingkat_pedas: 2, rasa: "gurih", metode_masak: "bakar"});
+CREATE (:Hidangan {nama: "Ayam Taliwang", catatan: "Khas Lombok", tingkat_pedas: 5, rasa: "pedas", metode_masak: "bakar"});
+CREATE (:Hidangan {nama: "Plecing Kangkung", catatan: "EXCEPTION: vegetarian=false (terasi)", tingkat_pedas: 4, rasa: "pedas", metode_masak: "rebus", vegetarian: false});
+CREATE (:Hidangan {nama: "Se'i Babi", catatan: "Diasap kayu kosambi, varian sapi juga populer", tingkat_pedas: 1, rasa: "gurih", metode_masak: "asap"});
+CREATE (:Hidangan {nama: "Jagung Bose", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Bubur Pedas Sambas", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Ikan Asam Pedas", catatan: "Bahan dari nama hidangan, perlu cek resep", tingkat_pedas: 3, rasa: "asam pedas", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Kerupuk Basah", catatan: "Khas Kapuas Hulu, teksturnya lunak seperti pempek", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Juhu Singkah", catatan: "Masakan Dayak", tingkat_pedas: 1, rasa: "asam gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Kalumpe", catatan: "Biasa disantap dengan sambal terasi", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Soto Banjar", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Nasi Bekepor", catatan: "Khas Kutai", tingkat_pedas: 0, rasa: "gurih", metode_masak: "liwet"});
+CREATE (:Hidangan {nama: "Amparan Tatak", catatan: "Bahan dari pengetahuan umum, juga ada di Kalsel", tingkat_pedas: 0, metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Kepiting Soka", catatan: "Khas Tarakan", tingkat_pedas: 1, rasa: "gurih", metode_masak: "goreng"});
+CREATE (:Hidangan {nama: "Nasi Subut", catatan: "Khas Tana Tidung", tingkat_pedas: 0, rasa: "gurih", metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Tinutuan", catatan: "Bubur Manado", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Cakalang Fufu", tingkat_pedas: 2, rasa: "gurih", metode_masak: "asap"});
+CREATE (:Hidangan {nama: "Dabu-dabu", catatan: "Contoh 1 hidangan dari 2 provinsi", tingkat_pedas: 4, rasa: "pedas segar", metode_masak: "mentah"});
+CREATE (:Hidangan {nama: "Binte Biluhuta", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Tiliaya", tingkat_pedas: 0, metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Kaledo", catatan: "Kaki sapi, khas Donggala", tingkat_pedas: 2, rasa: "asam gurih", metode_masak: "rebus lama"});
+CREATE (:Hidangan {nama: "Jepa", catatan: "Khas Mandar", tingkat_pedas: 0, rasa: "tawar", metode_masak: "panggang"});
+CREATE (:Hidangan {nama: "Bau Peapi", catatan: "Olahan ikan Mandar, bahan lain belum diverifikasi", tingkat_pedas: 1, rasa: "asam gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Coto Makassar", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Barongko", tingkat_pedas: 0, metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Es Pisang Ijo", tingkat_pedas: 0, rasa: "manis", metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Jalangkote", tingkat_pedas: 1, rasa: "gurih", metode_masak: "goreng"});
+CREATE (:Hidangan {nama: "Sinonggi", catatan: "Disajikan dengan kuah ikan, makanan pokok suku Tolaki", tingkat_pedas: 0, rasa: "tawar", metode_masak: "seduh"});
+CREATE (:Hidangan {nama: "Kabuto", tingkat_pedas: 0, rasa: "manis", metode_masak: "kukus"});
+CREATE (:Hidangan {nama: "Ikan Asar", catatan: "Khas Ambon", tingkat_pedas: 1, rasa: "gurih", metode_masak: "asap"});
+CREATE (:Hidangan {nama: "Kohu-kohu", catatan: "EXCEPTION: vegetarian=false (ikan cakalang asap)", tingkat_pedas: 1, rasa: "segar", metode_masak: "mentah", vegetarian: false});
+CREATE (:Hidangan {nama: "Colo-colo", tingkat_pedas: 4, rasa: "pedas segar", metode_masak: "mentah"});
+CREATE (:Hidangan {nama: "Gohu Ikan", catatan: "Ikan mentah, khas Ternate", tingkat_pedas: 3, rasa: "asam pedas", metode_masak: "mentah"});
+CREATE (:Hidangan {nama: "Halua Kenari", tingkat_pedas: 0, metode_masak: "masak gula"});
+CREATE (:Hidangan {nama: "Air Guraka", catatan: "Khas Ternate", tingkat_pedas: 1, rasa: "manis hangat", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Papeda", catatan: "Satu-satunya sumber yakin untuk Papua Barat Daya", tingkat_pedas: 0, rasa: "tawar", metode_masak: "seduh"});
+CREATE (:Hidangan {nama: "Kue Lontar", catatan: "Khas Fakfak", tingkat_pedas: 0, metode_masak: "panggang"});
+CREATE (:Hidangan {nama: "Sagu Lempeng", catatan: "Juga dikenal di Maluku", tingkat_pedas: 0, rasa: "tawar", metode_masak: "panggang"});
+CREATE (:Hidangan {nama: "Udang Selingkuh", catatan: "Lebih dikenal di Papua Pegunungan (Wamena), juga ada di Danau Paniai", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
+CREATE (:Hidangan {nama: "Sate Rusa", catatan: "Khas Merauke", tingkat_pedas: 1, rasa: "gurih", metode_masak: "bakar"});
+CREATE (:Hidangan {nama: "Labu Ikan Kuah Kuning", tingkat_pedas: 1, rasa: "asam gurih", metode_masak: "rebus"});
+
+// =====================
+// Relationship Creation
+// =====================
+
+// ---------- 8. Class hidangan: child -IS_A-> parent ----------
+MATCH (a:KelasHidangan {nama: "Makanan"}), (b:KelasHidangan {nama: "Kuliner"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Minuman"}), (b:KelasHidangan {nama: "Kuliner"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Hidangan Utama"}), (b:KelasHidangan {nama: "Makanan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Jajanan"}), (b:KelasHidangan {nama: "Makanan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Pelengkap"}), (b:KelasHidangan {nama: "Makanan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Minuman Tradisional"}), (b:KelasHidangan {nama: "Minuman"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Hidangan Berkuah"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Hidangan Nasi"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Bubur"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Olahan Daging"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Olahan Ikan"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Olahan Sagu"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Olahan Umbi"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Hidangan Mi"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Hidangan Sayur"}), (b:KelasHidangan {nama: "Hidangan Utama"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Soto"}), (b:KelasHidangan {nama: "Hidangan Berkuah"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Gulai"}), (b:KelasHidangan {nama: "Hidangan Berkuah"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Sup"}), (b:KelasHidangan {nama: "Hidangan Berkuah"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Sate"}), (b:KelasHidangan {nama: "Olahan Daging"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Masakan Bumbu"}), (b:KelasHidangan {nama: "Olahan Daging"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Kue Tradisional"}), (b:KelasHidangan {nama: "Jajanan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Gorengan"}), (b:KelasHidangan {nama: "Jajanan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Sambal"}), (b:KelasHidangan {nama: "Pelengkap"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Es Tradisional"}), (b:KelasHidangan {nama: "Minuman Tradisional"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Wedang"}), (b:KelasHidangan {nama: "Minuman Tradisional"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasHidangan {nama: "Kopi dan Teh Tradisional"}), (b:KelasHidangan {nama: "Minuman Tradisional"}) CREATE (a)-[:IS_A]->(b);
+
+// ---------- 9. Class bahan: child -IS_A-> parent ----------
+MATCH (a:KelasBahan {nama: "Bahan Hewani"}), (b:KelasBahan {nama: "Bahan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Bahan Nabati"}), (b:KelasBahan {nama: "Bahan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Bumbu"}), (b:KelasBahan {nama: "Bahan"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Daging"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Unggas"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Ikan"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Seafood"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Telur dan Susu"}), (b:KelasBahan {nama: "Bahan Hewani"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Biji-bijian dan Umbi"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Kacang-kacangan"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Sayuran"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Kelapa dan Olahannya"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Buah"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Kopi dan Teh"}), (b:KelasBahan {nama: "Bahan Nabati"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Rempah"}), (b:KelasBahan {nama: "Bumbu"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Bumbu Fermentasi"}), (b:KelasBahan {nama: "Bumbu"}) CREATE (a)-[:IS_A]->(b);
+MATCH (a:KelasBahan {nama: "Pemanis"}), (b:KelasBahan {nama: "Bumbu"}) CREATE (a)-[:IS_A]->(b);
+
+// ---------- 10. Daerah: Provinsi -PART_OF-> Wilayah -PART_OF-> Negara ----------
+MATCH (a:Wilayah {nama: "Wilayah Sumatera"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Wilayah {nama: "Wilayah Jawa"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Wilayah {nama: "Wilayah Kalimantan"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Wilayah {nama: "Wilayah Sulawesi"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Wilayah {nama: "Wilayah Maluku"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Wilayah {nama: "Wilayah Papua"}), (b:Negara {nama: 'Indonesia'}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Aceh"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sumatera Utara"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sumatera Barat"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Riau"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Kepulauan Riau"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Jambi"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sumatera Selatan"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Bengkulu"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Lampung"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Kepulauan Bangka Belitung"}), (b:Wilayah {nama: "Wilayah Sumatera"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "DKI Jakarta"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Banten"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Jawa Barat"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Jawa Tengah"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "DI Yogyakarta"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Jawa Timur"}), (b:Wilayah {nama: "Wilayah Jawa"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Bali"}), (b:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Nusa Tenggara Barat"}), (b:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Nusa Tenggara Timur"}), (b:Wilayah {nama: "Wilayah Bali dan Nusa Tenggara"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Kalimantan Barat"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Kalimantan Tengah"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Kalimantan Selatan"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Kalimantan Timur"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Kalimantan Utara"}), (b:Wilayah {nama: "Wilayah Kalimantan"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sulawesi Utara"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Gorontalo"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sulawesi Tengah"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sulawesi Barat"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sulawesi Selatan"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Sulawesi Tenggara"}), (b:Wilayah {nama: "Wilayah Sulawesi"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Maluku"}), (b:Wilayah {nama: "Wilayah Maluku"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Maluku Utara"}), (b:Wilayah {nama: "Wilayah Maluku"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Papua"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Papua Barat"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Papua Barat Daya"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Papua Tengah"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Papua Pegunungan"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
+MATCH (a:Provinsi {nama: "Papua Selatan"}), (b:Wilayah {nama: "Wilayah Papua"}) CREATE (a)-[:PART_OF]->(b);
+
+// ---------- 11. Bahan -INSTANCE_OF-> KelasBahan ----------
 MATCH (a:Bahan {nama: "Daging Sapi"}), (k:KelasBahan {nama: "Daging"}) CREATE (a)-[:INSTANCE_OF]->(k);
 MATCH (a:Bahan {nama: "Daging Kambing"}), (k:KelasBahan {nama: "Daging"}) CREATE (a)-[:INSTANCE_OF]->(k);
 MATCH (a:Bahan {nama: "Daging Babi"}), (k:KelasBahan {nama: "Daging"}) CREATE (a)-[:INSTANCE_OF]->(k);
@@ -389,7 +478,7 @@ MATCH (a:Bahan {nama: "Gula Pasir"}), (k:KelasBahan {nama: "Pemanis"}) CREATE (a
 MATCH (a:Bahan {nama: "Kopi"}), (k:KelasBahan {nama: "Kopi dan Teh"}) CREATE (a)-[:INSTANCE_OF]->(k);
 MATCH (a:Bahan {nama: "Teh"}), (k:KelasBahan {nama: "Kopi dan Teh"}) CREATE (a)-[:INSTANCE_OF]->(k);
 
-// ---------- 11. Relasi bahan MEMICU_ALERGI alergen ----------
+// ---------- 12. Bahan -MEMICU_ALERGI-> Alergen ----------
 MATCH (a:Bahan {nama: "Ikan Mas"}), (al:Alergen {nama: "Ikan"}) CREATE (a)-[:MEMICU_ALERGI]->(al);
 MATCH (a:Bahan {nama: "Ikan Patin"}), (al:Alergen {nama: "Ikan"}) CREATE (a)-[:MEMICU_ALERGI]->(al);
 MATCH (a:Bahan {nama: "Ikan Tenggiri"}), (al:Alergen {nama: "Ikan"}) CREATE (a)-[:MEMICU_ALERGI]->(al);
@@ -422,90 +511,7 @@ MATCH (a:Bahan {nama: "Kenari"}), (al:Alergen {nama: "Kacang Pohon"}) CREATE (a)
 MATCH (a:Bahan {nama: "Terasi"}), (al:Alergen {nama: "Krustasea"}) CREATE (a)-[:MEMICU_ALERGI]->(al);
 MATCH (a:Bahan {nama: "Petis"}), (al:Alergen {nama: "Krustasea"}) CREATE (a)-[:MEMICU_ALERGI]->(al);
 
-// ---------- 12. Node hidangan (beserta semua property) ----------
-// Property bernilai null tidak ditulis -> mewarisi default class.
-CREATE (:Hidangan {nama: "Mie Aceh", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.liputan6.com/hot/read/5171603/makanan-khas-daerah-adalah-warisan-budaya-berikut-contohnya", catatan: "Varian seafood juga umum", tingkat_pedas: 3, rasa: "gurih", metode_masak: "rebus/tumis"});
-CREATE (:Hidangan {nama: "Arsik", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Masakan Batak", tingkat_pedas: 3, rasa: "gurih asam", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Mie Gomak", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Rendang", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/", tingkat_pedas: 3, rasa: "gurih", metode_masak: "rebus lama"});
-CREATE (:Hidangan {nama: "Sate Padang", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 3, rasa: "gurih pedas", metode_masak: "bakar"});
-CREATE (:Hidangan {nama: "Teh Talua", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Kuning telur dikocok dengan teh panas", tingkat_pedas: 0, rasa: "manis", metode_masak: "seduh"});
-CREATE (:Hidangan {nama: "Gulai Ikan Patin", keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/2022/11/15/5-makanan-khas-riau-dengan-kuah-yang-menggugah-selera | https://www.orami.co.id/magazine/makanan-khas-pekanbaru", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Bolu Kemojo", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/sa-ar/travel-ideas/gastronomy/bolu-kemojo | https://jerkin.org/index.php/jerkin/article/view/1873", tingkat_pedas: 0, metode_masak: "panggang"});
-CREATE (:Hidangan {nama: "Gonggong", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/de-en/travel-ideas/gastronomy/gong-gong | https://www.goodnewsfromindonesia.id/2025/10/29/gonggong-siput-laut-yang-disulap-jadi-kuliner-lezat-di-kepulauan-riau", catatan: "Siput laut (moluska)", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Otak-otak", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/de-en/travel-ideas/gastronomy/gong-gong | https://mojok.co/terminal/mengenal-kuliner-seafood-khas-kepulauan-riau-yang-dijamin-enak/amp/", catatan: "Juga dikenal di daerah lain, versi Kepri dicampur sambal", tingkat_pedas: 2, rasa: "gurih pedas", metode_masak: "bakar"});
-CREATE (:Hidangan {nama: "Lakse Kuah", keyakinan: "Sedang", sumber: "https://www.detik.com/sumut/kuliner/d-7039389/resep-lakse-kuah-kari-khas-kepulauan-riau-yang-lezat | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Menurut situs WBTB asalnya dari Pelalawan, Riau", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Tempoyak Ikan Patin", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/jp-ja/travel-ideas/gastronomy/gulai-tempoya | https://www.detik.com/sumbagsel/kuliner/d-8134292/15-makanan-khas-jambi-kaya-rasa-dan-rempah-wajib-dicoba", catatan: "Wikipedia menyebut Palembang, juga dikenal di Sumsel", tingkat_pedas: 3, rasa: "asam pedas", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Gulai Tepek Ikan", keyakinan: "Sedang", sumber: "https://www.detik.com/sumbagsel/kuliner/d-8134292/15-makanan-khas-jambi-kaya-rasa-dan-rempah-wajib-dicoba | https://www.orami.co.id/magazine/makanan-khas-jambi", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Pempek", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/", catatan: "Gula Merah untuk kuah cuko", tingkat_pedas: 2, rasa: "gurih asam", metode_masak: "rebus lalu goreng"});
-CREATE (:Hidangan {nama: "Kue Delapan Jam", keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Disebut juga Bolu Lapan Jam", tingkat_pedas: 0, metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Pendap", keyakinan: "Tinggi", sumber: "https://bengkulu.antaranews.com/berita/272649/mengenal-pendap-kuliner-tradisional-populer-dari-bengkulu | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 3, rasa: "gurih pedas", metode_masak: "rebus lama"});
-CREATE (:Hidangan {nama: "Bagar Hiu", keyakinan: "Sedang", sumber: "https://jawapos.com/warung-ri-1/2205020087/bagar-hiu-harta-karun-kuliner-bengkulu-sejak-era-soekarno | https://www.detik.com/sumbagsel/kuliner/d-8139672/10-makanan-khas-bengkulu-dengan-cita-rasa-gurih-manis-asin-hingga-asam", catatan: "Bumbu lengkap belum diverifikasi, kelas Gulai berdasarkan bentuk masakan berbumbu kari", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Seruit", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/id-id/travel-ideas/gastronomy/seruit/ | https://www.liputan6.com/hot/read/5171603/makanan-khas-daerah-adalah-warisan-budaya-berikut-contohnya", catatan: "Ikan sungai: baung, belida, atau patin", tingkat_pedas: 4, rasa: "pedas", metode_masak: "bakar"});
-CREATE (:Hidangan {nama: "Gulai Taboh", keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/cerita-dari-kawan/nostalgia/gulai-taboh-makanan-tradisional-khas-lampung-yang-memiliki-isian-beragam", catatan: "Isian beragam, bahan selain santan perlu dicek", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Lempah Kuning", keyakinan: "Tinggi", sumber: "https://babel.antaranews.com/berita/345045/lempah-kuning-bangka-simbol-kehangatan-keluarga | https://www.detik.com/sumbagsel/kuliner/d-7144933/lempah-kuning-khas-bangka-belitung-ikan-berkuah-asam-yang-menyegarkan", tingkat_pedas: 2, rasa: "asam pedas", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Mie Koba", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/legendary-eateries-in-bangka-belitung/", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Soto Betawi", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.geokepo.id/en/destinasi/kuliner-legendaris", catatan: "Kuah santan + susu", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Nasi Uduk", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 0, rasa: "gurih", metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Sate Bandeng", keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", tingkat_pedas: 1, rasa: "manis gurih", metode_masak: "bakar"});
-CREATE (:Hidangan {nama: "Angeun Lada", keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Berisi jeroan sapi", tingkat_pedas: 3, rasa: "pedas", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Karedok", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "vegetarian mewarisi default Hidangan Sayur", tingkat_pedas: 2, rasa: "gurih", metode_masak: "mentah"});
-CREATE (:Hidangan {nama: "Empal Gentong", keyakinan: "Tinggi", sumber: "https://jabar.antaranews.com/berita/362633/jawa-barat-tetapkan-5-kuliner-sebagai-warisan-budaya-tak-benda?page=all | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Cirebon, WBTB tingkat provinsi", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Bandrek", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", tingkat_pedas: 1, rasa: "manis hangat", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Es Doger", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Bandung", tingkat_pedas: 0, rasa: "manis", metode_masak: "dingin"});
-CREATE (:Hidangan {nama: "Mendoan", keyakinan: "Tinggi", sumber: "https://www.kompas.tv/regional/227042/mendoan-jadi-warisan-budaya-takbenda-2021?page=all", catatan: "Khas Banyumas", tingkat_pedas: 0, rasa: "gurih", metode_masak: "goreng"});
-CREATE (:Hidangan {nama: "Nasi Liwet", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/ | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Solo", tingkat_pedas: 0, rasa: "gurih", metode_masak: "liwet"});
-CREATE (:Hidangan {nama: "Getuk", keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", tingkat_pedas: 0, rasa: "manis", metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Wedang Jahe", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", tingkat_pedas: 1, rasa: "manis hangat", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Gudeg", keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/", catatan: "vegetarian (ovo) mewarisi default Hidangan Sayur", tingkat_pedas: 0, rasa: "manis", metode_masak: "rebus lama"});
-CREATE (:Hidangan {nama: "Kopi Joss", keyakinan: "Tinggi", sumber: "https://www.detik.com/jogja/kuliner/d-7933831/13-kuliner-khas-jogja-jadi-warisan-budaya-ada-kopi-joss-jadah-tempe | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Disajikan dengan arang membara", tingkat_pedas: 0, rasa: "pahit manis", metode_masak: "seduh"});
-CREATE (:Hidangan {nama: "Rawon", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Tahu Campur", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Lamongan", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Rujak Cingur", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "EXCEPTION: vegetarian=false (cingur sapi)", tingkat_pedas: 2, rasa: "gurih manis", metode_masak: "mentah", vegetarian: false});
-CREATE (:Hidangan {nama: "Ayam Betutu", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.tokopedia.com/blog/makanan-khas-daerah-indonesia-tvl/", catatan: "Wikipedia: Bali dan NTB", tingkat_pedas: 4, rasa: "pedas", metode_masak: "kukus lalu panggang"});
-CREATE (:Hidangan {nama: "Sate Lilit", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/ | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 2, rasa: "gurih", metode_masak: "bakar"});
-CREATE (:Hidangan {nama: "Ayam Taliwang", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Lombok", tingkat_pedas: 5, rasa: "pedas", metode_masak: "bakar"});
-CREATE (:Hidangan {nama: "Plecing Kangkung", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "EXCEPTION: vegetarian=false (terasi)", tingkat_pedas: 4, rasa: "pedas", metode_masak: "rebus", vegetarian: false});
-CREATE (:Hidangan {nama: "Se'i Babi", keyakinan: "Tinggi", sumber: "https://voxntt.com/2019/05/27/bpnb-bali-gelar-dialog-budaya-ntt/46380 | https://www.liputan6.com/regional/read/6031486/dari-ritual-adat-ke-restoran-kekinian-transformasi-sei-dalam-budaya-timor", catatan: "Diasap kayu kosambi, varian sapi juga populer", tingkat_pedas: 1, rasa: "gurih", metode_masak: "asap"});
-CREATE (:Hidangan {nama: "Jagung Bose", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.liputan6.com/regional/read/5238691/5-makanan-khas-ntt-salah-satunya-jagung-bose-yang-pas-disantap-saat-cuaca-dingin", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Bubur Pedas Sambas", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.tokopedia.com/blog/makanan-khas-daerah-indonesia-tvl/", tingkat_pedas: 2, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Ikan Asam Pedas", keyakinan: "Tinggi", sumber: "https://www.suarasurabaya.net/?p=21565", catatan: "Bahan dari nama hidangan, perlu cek resep", tingkat_pedas: 3, rasa: "asam pedas", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Kerupuk Basah", keyakinan: "Tinggi", sumber: "https://www.suarasurabaya.net/senggang/2019/Kerupuk-Basah-dan-Kawin-Adat-Dayak-Masuk-Warisan-Budaya-Indonesia/ | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Khas Kapuas Hulu, teksturnya lunak seperti pempek", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Juhu Singkah", keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/2026/07/16/juhu-singkah-makanan-tradisional-khas-kalimantan-tengah-yang-disajikan-saat-upacara-adat-dayak | https://www.detik.com/kalimantan/kuliner/d-8101408/15-makanan-khas-palangka-raya-yang-menggugah-selera-wajib-dicicipi", catatan: "Masakan Dayak", tingkat_pedas: 1, rasa: "asam gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Kalumpe", keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://journal.upy.ac.id/index.php/pkn/article/download/1729/pdf/4279", catatan: "Biasa disantap dengan sambal terasi", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Soto Banjar", keyakinan: "Sedang", sumber: "https://www.popmama.com/life/health/makanan-khas-kalimantan-yang-lezat-dan-wajib-dicoba-00-s2pqh-ghvlzv", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Nasi Bekepor", keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://www.gramedia.com/best-seller/?p=61141", catatan: "Khas Kutai", tingkat_pedas: 0, rasa: "gurih", metode_masak: "liwet"});
-CREATE (:Hidangan {nama: "Amparan Tatak", keyakinan: "Tinggi", sumber: "https://rri.co.id/kuliner/1981540/amparan-tatak-sebagai-branding-baru-kuliner-kota-samarinda", catatan: "Bahan dari pengetahuan umum, juga ada di Kalsel", tingkat_pedas: 0, metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Kepiting Soka", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/gb-en/travel-ideas/gastronomy/kepiting-soka/ | https://rri.co.id/tarakan/kuliner/1003508/makanan-khas-kepiting-soka-berasal-dari-tarakan", catatan: "Khas Tarakan", tingkat_pedas: 1, rasa: "gurih", metode_masak: "goreng"});
-CREATE (:Hidangan {nama: "Nasi Subut", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/gb/en/travel-ideas/gastronomy/nasi-subut | https://www.popmama.com/life/health/makanan-khas-kalimantan-utara-yang-didominasi-olahan-laut-00-zq8jh-0twtnn", catatan: "Khas Tana Tidung", tingkat_pedas: 0, rasa: "gurih", metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Tinutuan", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Bubur Manado", tingkat_pedas: 0, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Cakalang Fufu", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.tokopedia.com/blog/makanan-khas-daerah-indonesia-tvl/", tingkat_pedas: 2, rasa: "gurih", metode_masak: "asap"});
-CREATE (:Hidangan {nama: "Dabu-dabu", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://rri.co.id/ternate/daerah/2044068/gubernur-malut-terima-penghargaan-10-warisan-budaya-takbenda", catatan: "Contoh 1 hidangan dari 2 provinsi", tingkat_pedas: 4, rasa: "pedas segar", metode_masak: "mentah"});
-CREATE (:Hidangan {nama: "Binte Biluhuta", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/Binte_biluhuta | https://www.goodnewsfromindonesia.id/indonesiana/sosial-budaya/binte-biluhuta-sup-jagung", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Tiliaya", keyakinan: "Tinggi", sumber: "https://mongabay.co.id/2022/04/11/tiliaya-kuliner-khas-gorontalo-yang-disajikan-saat-sahur/ | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 0, metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Kaledo", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/Kaledo_(soup) | https://www.goodnewsfromindonesia.id/2024/11/18/kaledo-kuliner-khas-sulawesi-tengah-yang-kaya-rasa-dan-nilai-kebudayaan", catatan: "Kaki sapi, khas Donggala", tingkat_pedas: 2, rasa: "asam gurih", metode_masak: "rebus lama"});
-CREATE (:Hidangan {nama: "Jepa", keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/sosial-budaya/jepa-makanan-khas-mandar", catatan: "Khas Mandar", tingkat_pedas: 0, rasa: "tawar", metode_masak: "panggang"});
-CREATE (:Hidangan {nama: "Bau Peapi", keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/sosial-budaya/jepa-makanan-khas-mandar", catatan: "Olahan ikan Mandar, bahan lain belum diverifikasi", tingkat_pedas: 1, rasa: "asam gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Coto Makassar", keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Barongko", keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/2025/10/23/barongko-warisan-kuliner-bugis-yang-menyimpan-cita-rasa-tradisi-sulawesi-selatan", tingkat_pedas: 0, metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Es Pisang Ijo", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", tingkat_pedas: 0, rasa: "manis", metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Jalangkote", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", tingkat_pedas: 1, rasa: "gurih", metode_masak: "goreng"});
-CREATE (:Hidangan {nama: "Sinonggi", keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/2023/02/27/sinonggi-khas-sulawesi-tenggara-makanan-pokok-suku-tolaki | https://bali.antaranews.com/berita/28126/wisata-kuliner-dukung-sektor-lain", catatan: "Disajikan dengan kuah ikan, makanan pokok suku Tolaki", tingkat_pedas: 0, rasa: "tawar", metode_masak: "seduh"});
-CREATE (:Hidangan {nama: "Kabuto", keyakinan: "Tinggi", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://www.goodnewsfromindonesia.id/2024/11/19/sultra-raih-9-apresiasi-warisan-budaya-tak-benda-2024-ada-kabuto-hingga-mowindahako", tingkat_pedas: 0, rasa: "manis", metode_masak: "kukus"});
-CREATE (:Hidangan {nama: "Ikan Asar", keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/uae-ar/travel-ideas/gastronomy/ikan-asar | https://www.goodnewsfromindonesia.id/2021/01/06/ikan-asar-kuliner-sarat-makna-ketahanan-pangan-ambon", catatan: "Khas Ambon", tingkat_pedas: 1, rasa: "gurih", metode_masak: "asap"});
-CREATE (:Hidangan {nama: "Kohu-kohu", keyakinan: "Tinggi", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://tirto.id/makanan-khas-ambon-dari-papeda-hingga-pisang-asar-f9Bd", catatan: "EXCEPTION: vegetarian=false (ikan cakalang asap)", tingkat_pedas: 1, rasa: "segar", metode_masak: "mentah", vegetarian: false});
-CREATE (:Hidangan {nama: "Colo-colo", keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.goodnewsfromindonesia.id/2016/03/04/sajian-istimewa-dari-tanah-rempah", tingkat_pedas: 4, rasa: "pedas segar", metode_masak: "mentah"});
-CREATE (:Hidangan {nama: "Gohu Ikan", keyakinan: "Tinggi", sumber: "https://rri.co.id/en/culinary/2205284/savoring-ternates-gohu-ikan-a-cultural-delight-in-north-maluku | https://www.goodnewsfromindonesia.id/2023/03/05/gohu-ikan-sajian-ikan-mentah-khas-ternate-yang-mirip-sashimi", catatan: "Ikan mentah, khas Ternate", tingkat_pedas: 3, rasa: "asam pedas", metode_masak: "mentah"});
-CREATE (:Hidangan {nama: "Halua Kenari", keyakinan: "Tinggi", sumber: "https://www.suarasurabaya.net/kelanakota/2021/kemendikbudristek-tetapkan-289-warisan-budaya-takbenda-indonesia-tahun-2021/", tingkat_pedas: 0, metode_masak: "masak gula"});
-CREATE (:Hidangan {nama: "Air Guraka", keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Ternate", tingkat_pedas: 1, rasa: "manis hangat", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Papeda", keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://www.indonesia.travel/id/id/destination/maluku-papua/southwest-papua", catatan: "Satu-satunya sumber yakin untuk Papua Barat Daya", tingkat_pedas: 0, rasa: "tawar", metode_masak: "seduh"});
-CREATE (:Hidangan {nama: "Kue Lontar", keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/2022/11/18/daftar-lengkap-makanan-khas-papua-dan-jajanan-oleh-oleh-5-provinsi", catatan: "Khas Fakfak", tingkat_pedas: 0, metode_masak: "panggang"});
-CREATE (:Hidangan {nama: "Sagu Lempeng", keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/gastronomi/makanan-khas-papua-yang-terbuat-dari-sagu | https://www.goodnewsfromindonesia.id/2025/10/02/10-makanan-khas-papua-selain-papeda", catatan: "Juga dikenal di Maluku", tingkat_pedas: 0, rasa: "tawar", metode_masak: "panggang"});
-CREATE (:Hidangan {nama: "Udang Selingkuh", keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/gastronomi/makanan-khas-papua-tengah", catatan: "Lebih dikenal di Papua Pegunungan (Wamena), juga ada di Danau Paniai", tingkat_pedas: 1, rasa: "gurih", metode_masak: "rebus"});
-CREATE (:Hidangan {nama: "Sate Rusa", keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/2026/08/11/makanan-khas-merauke-dari-sate-rusa-hingga-papeda", catatan: "Khas Merauke", tingkat_pedas: 1, rasa: "gurih", metode_masak: "bakar"});
-CREATE (:Hidangan {nama: "Labu Ikan Kuah Kuning", keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://www.goodnewsfromindonesia.id/2022/11/18/daftar-lengkap-makanan-khas-papua-dan-jajanan-oleh-oleh-5-provinsi", tingkat_pedas: 1, rasa: "asam gurih", metode_masak: "rebus"});
-
-// ---------- 13. Relasi hidangan INSTANCE_OF class hidangan ----------
+// ---------- 13. Hidangan -INSTANCE_OF-> KelasHidangan ----------
 MATCH (h:Hidangan {nama: "Mie Aceh"}), (k:KelasHidangan {nama: "Hidangan Mi"}) CREATE (h)-[:INSTANCE_OF]->(k);
 MATCH (h:Hidangan {nama: "Arsik"}), (k:KelasHidangan {nama: "Olahan Ikan"}) CREATE (h)-[:INSTANCE_OF]->(k);
 MATCH (h:Hidangan {nama: "Mie Gomak"}), (k:KelasHidangan {nama: "Hidangan Mi"}) CREATE (h)-[:INSTANCE_OF]->(k);
@@ -587,7 +593,7 @@ MATCH (h:Hidangan {nama: "Udang Selingkuh"}), (k:KelasHidangan {nama: "Olahan Ik
 MATCH (h:Hidangan {nama: "Sate Rusa"}), (k:KelasHidangan {nama: "Sate"}) CREATE (h)-[:INSTANCE_OF]->(k);
 MATCH (h:Hidangan {nama: "Labu Ikan Kuah Kuning"}), (k:KelasHidangan {nama: "Sup"}) CREATE (h)-[:INSTANCE_OF]->(k);
 
-// ---------- 14. Relasi hidangan BERASAL_DARI provinsi ----------
+// ---------- 14. Hidangan -BERASAL_DARI-> Provinsi ----------
 MATCH (h:Hidangan {nama: "Mie Aceh"}), (p:Provinsi {nama: "Aceh"}) CREATE (h)-[:BERASAL_DARI]->(p);
 MATCH (h:Hidangan {nama: "Arsik"}), (p:Provinsi {nama: "Sumatera Utara"}) CREATE (h)-[:BERASAL_DARI]->(p);
 MATCH (h:Hidangan {nama: "Mie Gomak"}), (p:Provinsi {nama: "Sumatera Utara"}) CREATE (h)-[:BERASAL_DARI]->(p);
@@ -673,7 +679,7 @@ MATCH (h:Hidangan {nama: "Udang Selingkuh"}), (p:Provinsi {nama: "Papua Pegunung
 MATCH (h:Hidangan {nama: "Sate Rusa"}), (p:Provinsi {nama: "Papua Selatan"}) CREATE (h)-[:BERASAL_DARI]->(p);
 MATCH (h:Hidangan {nama: "Labu Ikan Kuah Kuning"}), (p:Provinsi {nama: "Papua Selatan"}) CREATE (h)-[:BERASAL_DARI]->(p);
 
-// ---------- 15. Relasi hidangan MENGANDUNG bahan {peran} ----------
+// ---------- 15. Hidangan -MENGANDUNG {peran}-> Bahan ----------
 MATCH (h:Hidangan {nama: "Mie Aceh"}), (b:Bahan {nama: "Mi Kuning"}) CREATE (h)-[:MENGANDUNG {peran: "utama"}]->(b);
 MATCH (h:Hidangan {nama: "Mie Aceh"}), (b:Bahan {nama: "Daging Kambing"}) CREATE (h)-[:MENGANDUNG {peran: "utama"}]->(b);
 MATCH (h:Hidangan {nama: "Mie Aceh"}), (b:Bahan {nama: "Cabai"}) CREATE (h)-[:MENGANDUNG {peran: "pelengkap"}]->(b);
@@ -911,13 +917,3 @@ MATCH (h:Hidangan {nama: "Labu Ikan Kuah Kuning"}), (b:Bahan {nama: "Ikan Kakap"
 MATCH (h:Hidangan {nama: "Labu Ikan Kuah Kuning"}), (b:Bahan {nama: "Labu Kuning"}) CREATE (h)-[:MENGANDUNG {peran: "utama"}]->(b);
 MATCH (h:Hidangan {nama: "Labu Ikan Kuah Kuning"}), (b:Bahan {nama: "Jahe"}) CREATE (h)-[:MENGANDUNG {peran: "pelengkap"}]->(b);
 MATCH (h:Hidangan {nama: "Labu Ikan Kuah Kuning"}), (b:Bahan {nama: "Asam Jawa"}) CREATE (h)-[:MENGANDUNG {peran: "pelengkap"}]->(b);
-
-// =====================================================================
-//  VERIFIKASI (jalankan satu per satu)
-// =====================================================================
-// MATCH (n) UNWIND labels(n) AS l RETURN l AS label, count(*) AS jumlah ORDER BY jumlah DESC
-// MATCH ()-[r]->() RETURN type(r) AS relasi, count(*) AS jumlah ORDER BY jumlah DESC
-// MATCH (h:Hidangan) WHERE NOT EXISTS { (h)-[:INSTANCE_OF]->() } RETURN h.nama   // harus kosong
-// MATCH (h:Hidangan) WHERE NOT EXISTS { (h)-[:BERASAL_DARI]->() } RETURN h.nama  // harus kosong
-// MATCH (b:Bahan) WHERE NOT EXISTS { (b)-[:INSTANCE_OF]->() } RETURN b.nama      // harus kosong
-// MATCH (p:Provinsi) WHERE NOT EXISTS { ()-[:BERASAL_DARI]->(p) } RETURN p.nama  // provinsi tanpa hidangan, harus kosong

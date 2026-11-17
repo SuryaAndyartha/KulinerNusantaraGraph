@@ -1,13 +1,11 @@
 // =====================================================================
-//  KNOWLEDGE GRAPH KULINER NUSANTARA - VERSI 1 (UNWIND + MERGE)
-//  Aman dijalankan berulang kali. Jalankan seluruh file sekaligus
-//  (multi-statement aktif) atau dengan cypher-shell -f.
+//  KULINER NUSANTARA KNOWLEDGE GRAPH - VERSION 1 (UNWIND + MERGE)
 // =====================================================================
 
-// ---------- 0. Kosongkan database ----------
+// ---------- 0. Empty database ---------- Or if possible, create a new database (not available in community version of Neo4j)
 MATCH (n) DETACH DELETE n;
 
-// ---------- 1. Constraint: nama unik per label ----------
+// ---------- 1. Constraint: Assign unique constraint for each component's name ----------
 CREATE CONSTRAINT kelas_hidangan_nama IF NOT EXISTS FOR (n:KelasHidangan) REQUIRE n.nama IS UNIQUE;
 CREATE CONSTRAINT kelas_bahan_nama IF NOT EXISTS FOR (n:KelasBahan) REQUIRE n.nama IS UNIQUE;
 CREATE CONSTRAINT hidangan_nama IF NOT EXISTS FOR (n:Hidangan) REQUIRE n.nama IS UNIQUE;
@@ -15,7 +13,11 @@ CREATE CONSTRAINT bahan_nama IF NOT EXISTS FOR (n:Bahan) REQUIRE n.nama IS UNIQU
 CREATE CONSTRAINT alergen_nama IF NOT EXISTS FOR (n:Alergen) REQUIRE n.nama IS UNIQUE;
 CREATE CONSTRAINT daerah_nama IF NOT EXISTS FOR (n:Daerah) REQUIRE n.nama IS UNIQUE;
 
-// ---------- 2. Class hidangan: [anak, induk] ----------
+// =============
+// Node Creation
+// =============
+
+// ---------- 2. Class hidangan: [child, parent] ---------- Using UNWIND as an alternative for manual CREATE
 UNWIND [
   ["Makanan", "Kuliner"],
   ["Minuman", "Kuliner"],
@@ -48,7 +50,7 @@ MERGE (anak:KelasHidangan  {nama: pasangan[0]})
 MERGE (induk:KelasHidangan {nama: pasangan[1]})
 MERGE (anak)-[:IS_A]->(induk);
 
-// ---------- 3. Class bahan: [anak, induk] ----------
+// ---------- 3. Class bahan: [child, parent] ---------- Using UNWIND as an alternative for manual CREATE
 UNWIND [
   ["Bahan Hewani", "Bahan"],
   ["Bahan Nabati", "Bahan"],
@@ -72,7 +74,7 @@ MERGE (anak:KelasBahan  {nama: pasangan[0]})
 MERGE (induk:KelasBahan {nama: pasangan[1]})
 MERGE (anak)-[:IS_A]->(induk);
 
-// ---------- 4. Nilai default pada class (untuk default & exception) ----------
+// ---------- 4. Default value for several class (attribute, for exception purposes) ----------
 MATCH (k:KelasHidangan {nama: "Hidangan Sayur"}) SET k.vegetarian = true;
 MATCH (k:KelasHidangan {nama: "Sambal"}) SET k.vegetarian = true;
 MATCH (k:KelasHidangan {nama: "Kue Tradisional"}) SET k.rasa = "manis";
@@ -94,6 +96,10 @@ UNWIND [
 ] AS a
 MERGE (al:Alergen {nama: a.nama})
 SET al.keterangan = a.keterangan;
+
+// =====================
+// Relationship Creation
+// =====================
 
 // ---------- 6. Daerah: Provinsi -PART_OF-> Wilayah -PART_OF-> Negara ----------
 MERGE (:Daerah:Negara {nama: 'Indonesia'});
@@ -206,96 +212,96 @@ MATCH (k:KelasBahan {nama: r.kelas})
 MERGE (b:Bahan {nama: r.nama})
 MERGE (b)-[:INSTANCE_OF]->(k)
 WITH b, r
-UNWIND r.alergen AS namaAlergen          // daftar kosong = tidak ada alergen
+UNWIND r.alergen AS namaAlergen          
 MATCH (al:Alergen {nama: namaAlergen})
 MERGE (b)-[:MEMICU_ALERGI]->(al);
 
 // ---------- 8. Hidangan -INSTANCE_OF-> KelasHidangan, -BERASAL_DARI-> Provinsi ----------
 UNWIND [
-  {nama: "Mie Aceh", kelas: "Hidangan Mi", provinsi: ["Aceh"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.liputan6.com/hot/read/5171603/makanan-khas-daerah-adalah-warisan-budaya-berikut-contohnya", catatan: "Varian seafood juga umum"},
-  {nama: "Arsik", kelas: "Olahan Ikan", provinsi: ["Sumatera Utara"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Masakan Batak"},
-  {nama: "Mie Gomak", kelas: "Hidangan Mi", provinsi: ["Sumatera Utara"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Rendang", kelas: "Masakan Bumbu", provinsi: ["Sumatera Barat"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/", catatan: null},
-  {nama: "Sate Padang", kelas: "Sate", provinsi: ["Sumatera Barat"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Teh Talua", kelas: "Kopi dan Teh Tradisional", provinsi: ["Sumatera Barat"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Kuning telur dikocok dengan teh panas"},
-  {nama: "Gulai Ikan Patin", kelas: "Gulai", provinsi: ["Riau"], keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/2022/11/15/5-makanan-khas-riau-dengan-kuah-yang-menggugah-selera | https://www.orami.co.id/magazine/makanan-khas-pekanbaru", catatan: null},
-  {nama: "Bolu Kemojo", kelas: "Kue Tradisional", provinsi: ["Riau"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/sa-ar/travel-ideas/gastronomy/bolu-kemojo | https://jerkin.org/index.php/jerkin/article/view/1873", catatan: null},
-  {nama: "Gonggong", kelas: "Olahan Ikan", provinsi: ["Kepulauan Riau"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/de-en/travel-ideas/gastronomy/gong-gong | https://www.goodnewsfromindonesia.id/2025/10/29/gonggong-siput-laut-yang-disulap-jadi-kuliner-lezat-di-kepulauan-riau", catatan: "Siput laut (moluska)"},
-  {nama: "Otak-otak", kelas: "Olahan Ikan", provinsi: ["Kepulauan Riau"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/de-en/travel-ideas/gastronomy/gong-gong | https://mojok.co/terminal/mengenal-kuliner-seafood-khas-kepulauan-riau-yang-dijamin-enak/amp/", catatan: "Juga dikenal di daerah lain, versi Kepri dicampur sambal"},
-  {nama: "Lakse Kuah", kelas: "Hidangan Mi", provinsi: ["Kepulauan Riau"], keyakinan: "Sedang", sumber: "https://www.detik.com/sumut/kuliner/d-7039389/resep-lakse-kuah-kari-khas-kepulauan-riau-yang-lezat | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Menurut situs WBTB asalnya dari Pelalawan, Riau"},
-  {nama: "Tempoyak Ikan Patin", kelas: "Gulai", provinsi: ["Jambi"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/jp-ja/travel-ideas/gastronomy/gulai-tempoya | https://www.detik.com/sumbagsel/kuliner/d-8134292/15-makanan-khas-jambi-kaya-rasa-dan-rempah-wajib-dicoba", catatan: "Wikipedia menyebut Palembang, juga dikenal di Sumsel"},
-  {nama: "Gulai Tepek Ikan", kelas: "Gulai", provinsi: ["Jambi"], keyakinan: "Sedang", sumber: "https://www.detik.com/sumbagsel/kuliner/d-8134292/15-makanan-khas-jambi-kaya-rasa-dan-rempah-wajib-dicoba | https://www.orami.co.id/magazine/makanan-khas-jambi", catatan: null},
-  {nama: "Pempek", kelas: "Olahan Ikan", provinsi: ["Sumatera Selatan"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/", catatan: "Gula Merah untuk kuah cuko"},
-  {nama: "Kue Delapan Jam", kelas: "Kue Tradisional", provinsi: ["Sumatera Selatan"], keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Disebut juga Bolu Lapan Jam"},
-  {nama: "Pendap", kelas: "Olahan Ikan", provinsi: ["Bengkulu"], keyakinan: "Tinggi", sumber: "https://bengkulu.antaranews.com/berita/272649/mengenal-pendap-kuliner-tradisional-populer-dari-bengkulu | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Bagar Hiu", kelas: "Gulai", provinsi: ["Bengkulu"], keyakinan: "Sedang", sumber: "https://jawapos.com/warung-ri-1/2205020087/bagar-hiu-harta-karun-kuliner-bengkulu-sejak-era-soekarno | https://www.detik.com/sumbagsel/kuliner/d-8139672/10-makanan-khas-bengkulu-dengan-cita-rasa-gurih-manis-asin-hingga-asam", catatan: "Bumbu lengkap belum diverifikasi, kelas Gulai berdasarkan bentuk masakan berbumbu kari"},
-  {nama: "Seruit", kelas: "Olahan Ikan", provinsi: ["Lampung"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/id-id/travel-ideas/gastronomy/seruit/ | https://www.liputan6.com/hot/read/5171603/makanan-khas-daerah-adalah-warisan-budaya-berikut-contohnya", catatan: "Ikan sungai: baung, belida, atau patin"},
-  {nama: "Gulai Taboh", kelas: "Gulai", provinsi: ["Lampung"], keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/cerita-dari-kawan/nostalgia/gulai-taboh-makanan-tradisional-khas-lampung-yang-memiliki-isian-beragam", catatan: "Isian beragam, bahan selain santan perlu dicek"},
-  {nama: "Lempah Kuning", kelas: "Sup", provinsi: ["Kepulauan Bangka Belitung"], keyakinan: "Tinggi", sumber: "https://babel.antaranews.com/berita/345045/lempah-kuning-bangka-simbol-kehangatan-keluarga | https://www.detik.com/sumbagsel/kuliner/d-7144933/lempah-kuning-khas-bangka-belitung-ikan-berkuah-asam-yang-menyegarkan", catatan: null},
-  {nama: "Mie Koba", kelas: "Hidangan Mi", provinsi: ["Kepulauan Bangka Belitung"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/legendary-eateries-in-bangka-belitung/", catatan: null},
-  {nama: "Soto Betawi", kelas: "Soto", provinsi: ["DKI Jakarta"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.geokepo.id/en/destinasi/kuliner-legendaris", catatan: "Kuah santan + susu"},
-  {nama: "Nasi Uduk", kelas: "Hidangan Nasi", provinsi: ["DKI Jakarta"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Sate Bandeng", kelas: "Sate", provinsi: ["Banten"], keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: null},
-  {nama: "Angeun Lada", kelas: "Sup", provinsi: ["Banten"], keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Berisi jeroan sapi"},
-  {nama: "Karedok", kelas: "Hidangan Sayur", provinsi: ["Jawa Barat"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "vegetarian mewarisi default Hidangan Sayur"},
-  {nama: "Empal Gentong", kelas: "Sup", provinsi: ["Jawa Barat"], keyakinan: "Tinggi", sumber: "https://jabar.antaranews.com/berita/362633/jawa-barat-tetapkan-5-kuliner-sebagai-warisan-budaya-tak-benda?page=all | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Cirebon, WBTB tingkat provinsi"},
-  {nama: "Bandrek", kelas: "Wedang", provinsi: ["Jawa Barat"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: null},
-  {nama: "Es Doger", kelas: "Es Tradisional", provinsi: ["Jawa Barat"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Bandung"},
-  {nama: "Mendoan", kelas: "Gorengan", provinsi: ["Jawa Tengah"], keyakinan: "Tinggi", sumber: "https://www.kompas.tv/regional/227042/mendoan-jadi-warisan-budaya-takbenda-2021?page=all", catatan: "Khas Banyumas"},
-  {nama: "Nasi Liwet", kelas: "Hidangan Nasi", provinsi: ["Jawa Tengah"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/ | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Solo"},
-  {nama: "Getuk", kelas: "Olahan Umbi", provinsi: ["Jawa Tengah"], keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: null},
-  {nama: "Wedang Jahe", kelas: "Wedang", provinsi: ["Jawa Tengah"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: null},
-  {nama: "Gudeg", kelas: "Hidangan Sayur", provinsi: ["DI Yogyakarta"], keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/", catatan: "vegetarian (ovo) mewarisi default Hidangan Sayur"},
-  {nama: "Kopi Joss", kelas: "Kopi dan Teh Tradisional", provinsi: ["DI Yogyakarta"], keyakinan: "Tinggi", sumber: "https://www.detik.com/jogja/kuliner/d-7933831/13-kuliner-khas-jogja-jadi-warisan-budaya-ada-kopi-joss-jadah-tempe | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Disajikan dengan arang membara"},
-  {nama: "Rawon", kelas: "Sup", provinsi: ["Jawa Timur"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Tahu Campur", kelas: "Sup", provinsi: ["Jawa Timur"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Lamongan"},
-  {nama: "Rujak Cingur", kelas: "Hidangan Sayur", provinsi: ["Jawa Timur"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "EXCEPTION: vegetarian=false (cingur sapi)"},
-  {nama: "Ayam Betutu", kelas: "Masakan Bumbu", provinsi: ["Bali"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.tokopedia.com/blog/makanan-khas-daerah-indonesia-tvl/", catatan: "Wikipedia: Bali dan NTB"},
-  {nama: "Sate Lilit", kelas: "Sate", provinsi: ["Bali"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/id-id/travel-ideas/gastronomy/hobi-wisata-kuliner-10-makanan-khas-indonesia-ini-wajib-kamu-coba/ | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Ayam Taliwang", kelas: "Masakan Bumbu", provinsi: ["Nusa Tenggara Barat"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Lombok"},
-  {nama: "Plecing Kangkung", kelas: "Hidangan Sayur", provinsi: ["Nusa Tenggara Barat"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "EXCEPTION: vegetarian=false (terasi)"},
-  {nama: "Se'i Babi", kelas: "Olahan Daging", provinsi: ["Nusa Tenggara Timur"], keyakinan: "Tinggi", sumber: "https://voxntt.com/2019/05/27/bpnb-bali-gelar-dialog-budaya-ntt/46380 | https://www.liputan6.com/regional/read/6031486/dari-ritual-adat-ke-restoran-kekinian-transformasi-sei-dalam-budaya-timor", catatan: "Diasap kayu kosambi, varian sapi juga populer"},
-  {nama: "Jagung Bose", kelas: "Bubur", provinsi: ["Nusa Tenggara Timur"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.liputan6.com/regional/read/5238691/5-makanan-khas-ntt-salah-satunya-jagung-bose-yang-pas-disantap-saat-cuaca-dingin", catatan: null},
-  {nama: "Bubur Pedas Sambas", kelas: "Bubur", provinsi: ["Kalimantan Barat"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.tokopedia.com/blog/makanan-khas-daerah-indonesia-tvl/", catatan: null},
-  {nama: "Ikan Asam Pedas", kelas: "Sup", provinsi: ["Kalimantan Barat"], keyakinan: "Tinggi", sumber: "https://www.suarasurabaya.net/?p=21565", catatan: "Bahan dari nama hidangan, perlu cek resep"},
-  {nama: "Kerupuk Basah", kelas: "Olahan Ikan", provinsi: ["Kalimantan Barat"], keyakinan: "Tinggi", sumber: "https://www.suarasurabaya.net/senggang/2019/Kerupuk-Basah-dan-Kawin-Adat-Dayak-Masuk-Warisan-Budaya-Indonesia/ | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: "Khas Kapuas Hulu, teksturnya lunak seperti pempek"},
-  {nama: "Juhu Singkah", kelas: "Sup", provinsi: ["Kalimantan Tengah"], keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/2026/07/16/juhu-singkah-makanan-tradisional-khas-kalimantan-tengah-yang-disajikan-saat-upacara-adat-dayak | https://www.detik.com/kalimantan/kuliner/d-8101408/15-makanan-khas-palangka-raya-yang-menggugah-selera-wajib-dicicipi", catatan: "Masakan Dayak"},
-  {nama: "Kalumpe", kelas: "Hidangan Sayur", provinsi: ["Kalimantan Tengah"], keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://journal.upy.ac.id/index.php/pkn/article/download/1729/pdf/4279", catatan: "Biasa disantap dengan sambal terasi"},
-  {nama: "Soto Banjar", kelas: "Soto", provinsi: ["Kalimantan Selatan"], keyakinan: "Sedang", sumber: "https://www.popmama.com/life/health/makanan-khas-kalimantan-yang-lezat-dan-wajib-dicoba-00-s2pqh-ghvlzv", catatan: null},
-  {nama: "Nasi Bekepor", kelas: "Hidangan Nasi", provinsi: ["Kalimantan Timur"], keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://www.gramedia.com/best-seller/?p=61141", catatan: "Khas Kutai"},
-  {nama: "Amparan Tatak", kelas: "Kue Tradisional", provinsi: ["Kalimantan Timur"], keyakinan: "Tinggi", sumber: "https://rri.co.id/kuliner/1981540/amparan-tatak-sebagai-branding-baru-kuliner-kota-samarinda", catatan: "Bahan dari pengetahuan umum, juga ada di Kalsel"},
-  {nama: "Kepiting Soka", kelas: "Olahan Ikan", provinsi: ["Kalimantan Utara"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/gb-en/travel-ideas/gastronomy/kepiting-soka/ | https://rri.co.id/tarakan/kuliner/1003508/makanan-khas-kepiting-soka-berasal-dari-tarakan", catatan: "Khas Tarakan"},
-  {nama: "Nasi Subut", kelas: "Hidangan Nasi", provinsi: ["Kalimantan Utara"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/gb/en/travel-ideas/gastronomy/nasi-subut | https://www.popmama.com/life/health/makanan-khas-kalimantan-utara-yang-didominasi-olahan-laut-00-zq8jh-0twtnn", catatan: "Khas Tana Tidung"},
-  {nama: "Tinutuan", kelas: "Bubur", provinsi: ["Sulawesi Utara"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Bubur Manado"},
-  {nama: "Cakalang Fufu", kelas: "Olahan Ikan", provinsi: ["Sulawesi Utara"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.tokopedia.com/blog/makanan-khas-daerah-indonesia-tvl/", catatan: null},
-  {nama: "Dabu-dabu", kelas: "Sambal", provinsi: ["Sulawesi Utara", "Maluku Utara"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://rri.co.id/ternate/daerah/2044068/gubernur-malut-terima-penghargaan-10-warisan-budaya-takbenda", catatan: "Contoh 1 hidangan dari 2 provinsi"},
-  {nama: "Binte Biluhuta", kelas: "Sup", provinsi: ["Gorontalo"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/Binte_biluhuta | https://www.goodnewsfromindonesia.id/indonesiana/sosial-budaya/binte-biluhuta-sup-jagung", catatan: null},
-  {nama: "Tiliaya", kelas: "Kue Tradisional", provinsi: ["Gorontalo"], keyakinan: "Tinggi", sumber: "https://mongabay.co.id/2022/04/11/tiliaya-kuliner-khas-gorontalo-yang-disajikan-saat-sahur/ | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Kaledo", kelas: "Sup", provinsi: ["Sulawesi Tengah"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/Kaledo_(soup) | https://www.goodnewsfromindonesia.id/2024/11/18/kaledo-kuliner-khas-sulawesi-tengah-yang-kaya-rasa-dan-nilai-kebudayaan", catatan: "Kaki sapi, khas Donggala"},
-  {nama: "Jepa", kelas: "Olahan Umbi", provinsi: ["Sulawesi Barat"], keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/sosial-budaya/jepa-makanan-khas-mandar", catatan: "Khas Mandar"},
-  {nama: "Bau Peapi", kelas: "Sup", provinsi: ["Sulawesi Barat"], keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/sosial-budaya/jepa-makanan-khas-mandar", catatan: "Olahan ikan Mandar, bahan lain belum diverifikasi"},
-  {nama: "Coto Makassar", kelas: "Soto", provinsi: ["Sulawesi Selatan"], keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: null},
-  {nama: "Barongko", kelas: "Kue Tradisional", provinsi: ["Sulawesi Selatan"], keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/2025/10/23/barongko-warisan-kuliner-bugis-yang-menyimpan-cita-rasa-tradisi-sulawesi-selatan", catatan: null},
-  {nama: "Es Pisang Ijo", kelas: "Es Tradisional", provinsi: ["Sulawesi Selatan"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: null},
-  {nama: "Jalangkote", kelas: "Gorengan", provinsi: ["Sulawesi Selatan"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran", catatan: null},
-  {nama: "Sinonggi", kelas: "Olahan Sagu", provinsi: ["Sulawesi Tenggara"], keyakinan: "Tinggi", sumber: "https://www.goodnewsfromindonesia.id/2023/02/27/sinonggi-khas-sulawesi-tenggara-makanan-pokok-suku-tolaki | https://bali.antaranews.com/berita/28126/wisata-kuliner-dukung-sektor-lain", catatan: "Disajikan dengan kuah ikan, makanan pokok suku Tolaki"},
-  {nama: "Kabuto", kelas: "Olahan Umbi", provinsi: ["Sulawesi Tenggara"], keyakinan: "Tinggi", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://www.goodnewsfromindonesia.id/2024/11/19/sultra-raih-9-apresiasi-warisan-budaya-tak-benda-2024-ada-kabuto-hingga-mowindahako", catatan: null},
-  {nama: "Ikan Asar", kelas: "Olahan Ikan", provinsi: ["Maluku"], keyakinan: "Tinggi", sumber: "https://www.indonesia.travel/uae-ar/travel-ideas/gastronomy/ikan-asar | https://www.goodnewsfromindonesia.id/2021/01/06/ikan-asar-kuliner-sarat-makna-ketahanan-pangan-ambon", catatan: "Khas Ambon"},
-  {nama: "Kohu-kohu", kelas: "Hidangan Sayur", provinsi: ["Maluku"], keyakinan: "Tinggi", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://tirto.id/makanan-khas-ambon-dari-papeda-hingga-pisang-asar-f9Bd", catatan: "EXCEPTION: vegetarian=false (ikan cakalang asap)"},
-  {nama: "Colo-colo", kelas: "Sambal", provinsi: ["Maluku"], keyakinan: "Tinggi", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes | https://www.goodnewsfromindonesia.id/2016/03/04/sajian-istimewa-dari-tanah-rempah", catatan: null},
-  {nama: "Gohu Ikan", kelas: "Olahan Ikan", provinsi: ["Maluku Utara"], keyakinan: "Tinggi", sumber: "https://rri.co.id/en/culinary/2205284/savoring-ternates-gohu-ikan-a-cultural-delight-in-north-maluku | https://www.goodnewsfromindonesia.id/2023/03/05/gohu-ikan-sajian-ikan-mentah-khas-ternate-yang-mirip-sashimi", catatan: "Ikan mentah, khas Ternate"},
-  {nama: "Halua Kenari", kelas: "Kue Tradisional", provinsi: ["Maluku Utara"], keyakinan: "Tinggi", sumber: "https://www.suarasurabaya.net/kelanakota/2021/kemendikbudristek-tetapkan-289-warisan-budaya-takbenda-indonesia-tahun-2021/", catatan: null},
-  {nama: "Air Guraka", kelas: "Wedang", provinsi: ["Maluku Utara"], keyakinan: "Sedang", sumber: "https://en.wikipedia.org/wiki/List_of_Indonesian_dishes", catatan: "Khas Ternate"},
-  {nama: "Papeda", kelas: "Olahan Sagu", provinsi: ["Papua", "Papua Barat", "Maluku", "Papua Barat Daya"], keyakinan: "Tinggi", sumber: "https://kabar24.bisnis.com/read/20151016/15/482918/gudeg-papeda-koteka-dan-coto-makassar-warisan-budaya | https://www.indonesia.travel/id/id/destination/maluku-papua/southwest-papua", catatan: "Satu-satunya sumber yakin untuk Papua Barat Daya"},
-  {nama: "Kue Lontar", kelas: "Kue Tradisional", provinsi: ["Papua Barat"], keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/2022/11/18/daftar-lengkap-makanan-khas-papua-dan-jajanan-oleh-oleh-5-provinsi", catatan: "Khas Fakfak"},
-  {nama: "Sagu Lempeng", kelas: "Olahan Sagu", provinsi: ["Papua Tengah"], keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/gastronomi/makanan-khas-papua-yang-terbuat-dari-sagu | https://www.goodnewsfromindonesia.id/2025/10/02/10-makanan-khas-papua-selain-papeda", catatan: "Juga dikenal di Maluku"},
-  {nama: "Udang Selingkuh", kelas: "Olahan Ikan", provinsi: ["Papua Pegunungan"], keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/indonesiana/gastronomi/makanan-khas-papua-tengah", catatan: "Lebih dikenal di Papua Pegunungan (Wamena), juga ada di Danau Paniai"},
-  {nama: "Sate Rusa", kelas: "Sate", provinsi: ["Papua Selatan"], keyakinan: "Sedang", sumber: "https://www.goodnewsfromindonesia.id/2026/08/11/makanan-khas-merauke-dari-sate-rusa-hingga-papeda", catatan: "Khas Merauke"},
-  {nama: "Labu Ikan Kuah Kuning", kelas: "Sup", provinsi: ["Papua Selatan"], keyakinan: "Sedang", sumber: "https://www.detik.com/edu/detikpedia/d-6661127/38-makanan-tradisonal-khas-indonesia-patut-dicoba-saat-lebaran | https://www.goodnewsfromindonesia.id/2022/11/18/daftar-lengkap-makanan-khas-papua-dan-jajanan-oleh-oleh-5-provinsi", catatan: null}
+  {nama: "Mie Aceh", kelas: "Hidangan Mi", provinsi: ["Aceh"], catatan: "Varian seafood juga umum"},
+  {nama: "Arsik", kelas: "Olahan Ikan", provinsi: ["Sumatera Utara"], catatan: "Masakan Batak"},
+  {nama: "Mie Gomak", kelas: "Hidangan Mi", provinsi: ["Sumatera Utara"], catatan: null},
+  {nama: "Rendang", kelas: "Masakan Bumbu", provinsi: ["Sumatera Barat"], catatan: null},
+  {nama: "Sate Padang", kelas: "Sate", provinsi: ["Sumatera Barat"], catatan: null},
+  {nama: "Teh Talua", kelas: "Kopi dan Teh Tradisional", provinsi: ["Sumatera Barat"], catatan: "Kuning telur dikocok dengan teh panas"},
+  {nama: "Gulai Ikan Patin", kelas: "Gulai", provinsi: ["Riau"], catatan: null},
+  {nama: "Bolu Kemojo", kelas: "Kue Tradisional", provinsi: ["Riau"], catatan: null},
+  {nama: "Gonggong", kelas: "Olahan Ikan", provinsi: ["Kepulauan Riau"], catatan: "Siput laut (moluska)"},
+  {nama: "Otak-otak", kelas: "Olahan Ikan", provinsi: ["Kepulauan Riau"], catatan: "Juga dikenal di daerah lain, versi Kepri dicampur sambal"},
+  {nama: "Lakse Kuah", kelas: "Hidangan Mi", provinsi: ["Kepulauan Riau"], catatan: "Menurut situs WBTB asalnya dari Pelalawan, Riau"},
+  {nama: "Tempoyak Ikan Patin", kelas: "Gulai", provinsi: ["Jambi"], catatan: "Wikipedia menyebut Palembang, juga dikenal di Sumsel"},
+  {nama: "Gulai Tepek Ikan", kelas: "Gulai", provinsi: ["Jambi"], catatan: null},
+  {nama: "Pempek", kelas: "Olahan Ikan", provinsi: ["Sumatera Selatan"], catatan: "Gula Merah untuk kuah cuko"},
+  {nama: "Kue Delapan Jam", kelas: "Kue Tradisional", provinsi: ["Sumatera Selatan"], catatan: "Disebut juga Bolu Lapan Jam"},
+  {nama: "Pendap", kelas: "Olahan Ikan", provinsi: ["Bengkulu"], catatan: null},
+  {nama: "Bagar Hiu", kelas: "Gulai", provinsi: ["Bengkulu"], catatan: "Bumbu lengkap belum diverifikasi, kelas Gulai berdasarkan bentuk masakan berbumbu kari"},
+  {nama: "Seruit", kelas: "Olahan Ikan", provinsi: ["Lampung"], catatan: "Ikan sungai: baung, belida, atau patin"},
+  {nama: "Gulai Taboh", kelas: "Gulai", provinsi: ["Lampung"], catatan: "Isian beragam, bahan selain santan perlu dicek"},
+  {nama: "Lempah Kuning", kelas: "Sup", provinsi: ["Kepulauan Bangka Belitung"], catatan: null},
+  {nama: "Mie Koba", kelas: "Hidangan Mi", provinsi: ["Kepulauan Bangka Belitung"], catatan: null},
+  {nama: "Soto Betawi", kelas: "Soto", provinsi: ["DKI Jakarta"], catatan: "Kuah santan + susu"},
+  {nama: "Nasi Uduk", kelas: "Hidangan Nasi", provinsi: ["DKI Jakarta"], catatan: null},
+  {nama: "Sate Bandeng", kelas: "Sate", provinsi: ["Banten"], catatan: null},
+  {nama: "Angeun Lada", kelas: "Sup", provinsi: ["Banten"], catatan: "Berisi jeroan sapi"},
+  {nama: "Karedok", kelas: "Hidangan Sayur", provinsi: ["Jawa Barat"], catatan: "vegetarian mewarisi default Hidangan Sayur"},
+  {nama: "Empal Gentong", kelas: "Sup", provinsi: ["Jawa Barat"], catatan: "Khas Cirebon, WBTB tingkat provinsi"},
+  {nama: "Bandrek", kelas: "Wedang", provinsi: ["Jawa Barat"], catatan: null},
+  {nama: "Es Doger", kelas: "Es Tradisional", provinsi: ["Jawa Barat"], catatan: "Khas Bandung"},
+  {nama: "Mendoan", kelas: "Gorengan", provinsi: ["Jawa Tengah"], catatan: "Khas Banyumas"},
+  {nama: "Nasi Liwet", kelas: "Hidangan Nasi", provinsi: ["Jawa Tengah"], catatan: "Khas Solo"},
+  {nama: "Getuk", kelas: "Olahan Umbi", provinsi: ["Jawa Tengah"], catatan: null},
+  {nama: "Wedang Jahe", kelas: "Wedang", provinsi: ["Jawa Tengah"], catatan: null},
+  {nama: "Gudeg", kelas: "Hidangan Sayur", provinsi: ["DI Yogyakarta"], catatan: "vegetarian (ovo) mewarisi default Hidangan Sayur"},
+  {nama: "Kopi Joss", kelas: "Kopi dan Teh Tradisional", provinsi: ["DI Yogyakarta"], catatan: "Disajikan dengan arang membara"},
+  {nama: "Rawon", kelas: "Sup", provinsi: ["Jawa Timur"], catatan: null},
+  {nama: "Tahu Campur", kelas: "Sup", provinsi: ["Jawa Timur"], catatan: "Khas Lamongan"},
+  {nama: "Rujak Cingur", kelas: "Hidangan Sayur", provinsi: ["Jawa Timur"], catatan: "EXCEPTION: vegetarian=false (cingur sapi)"},
+  {nama: "Ayam Betutu", kelas: "Masakan Bumbu", provinsi: ["Bali"], catatan: "Wikipedia: Bali dan NTB"},
+  {nama: "Sate Lilit", kelas: "Sate", provinsi: ["Bali"], catatan: null},
+  {nama: "Ayam Taliwang", kelas: "Masakan Bumbu", provinsi: ["Nusa Tenggara Barat"], catatan: "Khas Lombok"},
+  {nama: "Plecing Kangkung", kelas: "Hidangan Sayur", provinsi: ["Nusa Tenggara Barat"], catatan: "EXCEPTION: vegetarian=false (terasi)"},
+  {nama: "Se'i Babi", kelas: "Olahan Daging", provinsi: ["Nusa Tenggara Timur"], catatan: "Diasap kayu kosambi, varian sapi juga populer"},
+  {nama: "Jagung Bose", kelas: "Bubur", provinsi: ["Nusa Tenggara Timur"], catatan: null},
+  {nama: "Bubur Pedas Sambas", kelas: "Bubur", provinsi: ["Kalimantan Barat"], catatan: null},
+  {nama: "Ikan Asam Pedas", kelas: "Sup", provinsi: ["Kalimantan Barat"], catatan: "Bahan dari nama hidangan, perlu cek resep"},
+  {nama: "Kerupuk Basah", kelas: "Olahan Ikan", provinsi: ["Kalimantan Barat"], catatan: "Khas Kapuas Hulu, teksturnya lunak seperti pempek"},
+  {nama: "Juhu Singkah", kelas: "Sup", provinsi: ["Kalimantan Tengah"], catatan: "Masakan Dayak"},
+  {nama: "Kalumpe", kelas: "Hidangan Sayur", provinsi: ["Kalimantan Tengah"], catatan: "Biasa disantap dengan sambal terasi"},
+  {nama: "Soto Banjar", kelas: "Soto", provinsi: ["Kalimantan Selatan"], catatan: null},
+  {nama: "Nasi Bekepor", kelas: "Hidangan Nasi", provinsi: ["Kalimantan Timur"], catatan: "Khas Kutai"},
+  {nama: "Amparan Tatak", kelas: "Kue Tradisional", provinsi: ["Kalimantan Timur"], catatan: "Bahan dari pengetahuan umum, juga ada di Kalsel"},
+  {nama: "Kepiting Soka", kelas: "Olahan Ikan", provinsi: ["Kalimantan Utara"], catatan: "Khas Tarakan"},
+  {nama: "Nasi Subut", kelas: "Hidangan Nasi", provinsi: ["Kalimantan Utara"], catatan: "Khas Tana Tidung"},
+  {nama: "Tinutuan", kelas: "Bubur", provinsi: ["Sulawesi Utara"], catatan: "Bubur Manado"},
+  {nama: "Cakalang Fufu", kelas: "Olahan Ikan", provinsi: ["Sulawesi Utara"], catatan: null},
+  {nama: "Dabu-dabu", kelas: "Sambal", provinsi: ["Sulawesi Utara", "Maluku Utara"], catatan: "Contoh 1 hidangan dari 2 provinsi"},
+  {nama: "Binte Biluhuta", kelas: "Sup", provinsi: ["Gorontalo"], catatan: null},
+  {nama: "Tiliaya", kelas: "Kue Tradisional", provinsi: ["Gorontalo"], catatan: null},
+  {nama: "Kaledo", kelas: "Sup", provinsi: ["Sulawesi Tengah"], catatan: "Kaki sapi, khas Donggala"},
+  {nama: "Jepa", kelas: "Olahan Umbi", provinsi: ["Sulawesi Barat"], catatan: "Khas Mandar"},
+  {nama: "Bau Peapi", kelas: "Sup", provinsi: ["Sulawesi Barat"], catatan: "Olahan ikan Mandar, bahan lain belum diverifikasi"},
+  {nama: "Coto Makassar", kelas: "Soto", provinsi: ["Sulawesi Selatan"], catatan: null},
+  {nama: "Barongko", kelas: "Kue Tradisional", provinsi: ["Sulawesi Selatan"], catatan: null},
+  {nama: "Es Pisang Ijo", kelas: "Es Tradisional", provinsi: ["Sulawesi Selatan"], catatan: null},
+  {nama: "Jalangkote", kelas: "Gorengan", provinsi: ["Sulawesi Selatan"], catatan: null},
+  {nama: "Sinonggi", kelas: "Olahan Sagu", provinsi: ["Sulawesi Tenggara"], catatan: "Disajikan dengan kuah ikan, makanan pokok suku Tolaki"},
+  {nama: "Kabuto", kelas: "Olahan Umbi", provinsi: ["Sulawesi Tenggara"], catatan: null},
+  {nama: "Ikan Asar", kelas: "Olahan Ikan", provinsi: ["Maluku"], catatan: "Khas Ambon"},
+  {nama: "Kohu-kohu", kelas: "Hidangan Sayur", provinsi: ["Maluku"], catatan: "EXCEPTION: vegetarian=false (ikan cakalang asap)"},
+  {nama: "Colo-colo", kelas: "Sambal", provinsi: ["Maluku"], catatan: null},
+  {nama: "Gohu Ikan", kelas: "Olahan Ikan", provinsi: ["Maluku Utara"], catatan: "Ikan mentah, khas Ternate"},
+  {nama: "Halua Kenari", kelas: "Kue Tradisional", provinsi: ["Maluku Utara"], catatan: null},
+  {nama: "Air Guraka", kelas: "Wedang", provinsi: ["Maluku Utara"], catatan: "Khas Ternate"},
+  {nama: "Papeda", kelas: "Olahan Sagu", provinsi: ["Papua", "Papua Barat", "Maluku", "Papua Barat Daya"], catatan: "Satu-satunya sumber yakin untuk Papua Barat Daya"},
+  {nama: "Kue Lontar", kelas: "Kue Tradisional", provinsi: ["Papua Barat"], catatan: "Khas Fakfak"},
+  {nama: "Sagu Lempeng", kelas: "Olahan Sagu", provinsi: ["Papua Tengah"], catatan: "Juga dikenal di Maluku"},
+  {nama: "Udang Selingkuh", kelas: "Olahan Ikan", provinsi: ["Papua Pegunungan"], catatan: "Lebih dikenal di Papua Pegunungan (Wamena), juga ada di Danau Paniai"},
+  {nama: "Sate Rusa", kelas: "Sate", provinsi: ["Papua Selatan"], catatan: "Khas Merauke"},
+  {nama: "Labu Ikan Kuah Kuning", kelas: "Sup", provinsi: ["Papua Selatan"], catatan: null}
 ] AS r
 MATCH (k:KelasHidangan {nama: r.kelas})
 MERGE (h:Hidangan {nama: r.nama})
-SET h.keyakinan = r.keyakinan, h.sumber = r.sumber, h.catatan = r.catatan
+SET h.catatan = r.catatan
 MERGE (h)-[:INSTANCE_OF]->(k)
 WITH h, r
 UNWIND r.provinsi AS namaProvinsi
@@ -547,8 +553,7 @@ MATCH (b:Bahan {nama: r[1]})
 MERGE (h)-[m:MENGANDUNG]->(b)
 SET m.peran = r[2];
 
-// ---------- 10. Atribut turunan ----------
-// Nilai null TIDAK disimpan, sehingga hidangan mewarisi default class-nya.
+// ---------- 10. Derivated attributes: Not the main attribute ----------
 UNWIND [
   {nama: "Mie Aceh", tingkat_pedas: 3, rasa: "gurih", metode_masak: "rebus/tumis", vegetarian: null, suhu_sajian: null},
   {nama: "Arsik", tingkat_pedas: 3, rasa: "gurih asam", metode_masak: "rebus", vegetarian: null, suhu_sajian: null},
@@ -637,13 +642,3 @@ SET h.tingkat_pedas = r.tingkat_pedas,
     h.metode_masak  = r.metode_masak,
     h.vegetarian    = r.vegetarian,
     h.suhu_sajian   = r.suhu_sajian;
-
-// =====================================================================
-//  VERIFIKASI (jalankan satu per satu)
-// =====================================================================
-// MATCH (n) UNWIND labels(n) AS l RETURN l AS label, count(*) AS jumlah ORDER BY jumlah DESC
-// MATCH ()-[r]->() RETURN type(r) AS relasi, count(*) AS jumlah ORDER BY jumlah DESC
-// MATCH (h:Hidangan) WHERE NOT EXISTS { (h)-[:INSTANCE_OF]->() } RETURN h.nama   // harus kosong
-// MATCH (h:Hidangan) WHERE NOT EXISTS { (h)-[:BERASAL_DARI]->() } RETURN h.nama  // harus kosong
-// MATCH (b:Bahan) WHERE NOT EXISTS { (b)-[:INSTANCE_OF]->() } RETURN b.nama      // harus kosong
-// MATCH (p:Provinsi) WHERE NOT EXISTS { ()-[:BERASAL_DARI]->(p) } RETURN p.nama  // provinsi tanpa hidangan, harus kosong
